@@ -2,18 +2,20 @@ class Node extends SwingComponent {
   public float paramSize = 14.0f, paramGap = 6.0f;
   public NodeParams inputs, outputs;
 
-  public Node(String tmp_name, int tmp_x, int tmp_y) {
-    super(tmp_x, tmp_y, 0, 0);
+  public Node(String tmp_name, float tmp_x, float tmp_y) {
+    super(tmp_x, tmp_y, 0.0f, 0.0f);
     name = tmp_name;
     inputs = new NodeParams((int)(0.0f - paramSize / 2.0f), 0, paramSize, paramGap, true);
     outputs = new NodeParams((int)(w - paramSize / 2.0f), 0, paramSize, paramGap, false);
     add(inputs); add(outputs);
   }
+  @Override
   public void update(){
     min_w = 200.0f;
     min_h = max(inputs.h, outputs.h);
     super.update();
   }
+  @Override
   public void draw(){
     inputs.x = 0.0f - paramSize / 2.0f; inputs.y = 0.0f;
     outputs.x = w - paramSize / 2.0f; outputs.y = 0.0f;
@@ -25,20 +27,22 @@ class NodeParams extends Component {
   public boolean isInput;
   public float size, gap;
   
-  public NodeParams(int tmp_x, int tmp_y, float tmp_size, float tmp_gap, boolean tmp_in) {
-    super(tmp_x, tmp_y, (int)ceil(tmp_size), (int)ceil(tmp_gap));
+  public NodeParams(float tmp_x, float tmp_y, float tmp_size, float tmp_gap, boolean tmp_in) {
+    super(tmp_x, tmp_y, tmp_size, tmp_gap);
     size = tmp_size;
     gap = tmp_gap;
     isInput = tmp_in;
     name = isInput?"Input":"Output";
   }
+  @Override
   public Component add(Component child){
     if(!(child instanceof NodeParam)) return null;
     ((NodeParam)child).setup(0, (int)h ,size, isInput);
     h += size + gap;
     return super.add(child);
   }
-  public void mouseEvent(String type, int tmp_x, int tmp_y, int start_x, int start_y) {
+  @Override
+  public void mouseEvent(String type, float tmp_x, float tmp_y, float start_x, float start_y) {
     mouseEventToChild(type, tmp_x, tmp_y, start_x, start_y);
   }
 }
@@ -50,7 +54,7 @@ class NodeParam extends Component {
   public float size;
 
   public NodeParam(String tmp_name) {
-    super(0, 0, 0, 0);
+    super(0.0f, 0.0f, 0.0f, 0.0f);
     name = tmp_name;
   }
   public boolean canOutput(NodeParam p){
@@ -63,6 +67,7 @@ class NodeParam extends Component {
     w = h = size;
     isInput = tmp_in;
   }
+  @Override
   public void update() {
     if (output != null) {
       vector = output.getGrobalPos(0.0f, 0.0f);
@@ -70,6 +75,7 @@ class NodeParam extends Component {
       vector.add(new PVector(output.isInput?0.0f:output.size, output.size / 2.0f));
     }
   }
+  @Override
   public void draw() {
     strokeWeight(2.0f);
     stroke(30.0f, 30.0f, 30.0f, 255.0f);
@@ -100,7 +106,8 @@ class NodeParam extends Component {
         );
     }
   }
-  public void mouseEvent(String type, int tmp_x, int tmp_y, int start_x, int start_y) {
+  @Override
+  public void mouseEvent(String type, float tmp_x, float tmp_y, float start_x, float start_y) {
     if (isInput) {
       if (type == "UP" && output == null) vector = null;
       if (type == "DRAG") {
@@ -127,7 +134,7 @@ class NodeParam extends Component {
       if (type == "DRAG") {
         vector = new PVector(tmp_x, tmp_y);
         PVector grobalMouse = getGrobalPos(vector.x, vector.y);
-        Component hit = getRootComponent().getHit((int)grobalMouse.x, (int)grobalMouse.y);
+        Component hit = getRootComponent().getHit(grobalMouse.x, grobalMouse.y);
         output = null;
         if(hit instanceof NodeParam) output = (NodeParam)hit; else return;
         if((output == this) || (!output.isInput)){

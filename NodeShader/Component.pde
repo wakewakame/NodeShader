@@ -5,13 +5,13 @@ class Component{
   protected List<Component> childs;
   protected boolean dragFlag = false;
   protected boolean clickFlag = false;
-  protected int dragStartCompX, dragStartCompY;
+  protected float dragStartCompX, dragStartCompY;
   
-  public Component(int tmp_x, int tmp_y, int tmp_w, int tmp_h){
-    x = (float)tmp_x;
-    y = (float)tmp_y;
-    w = (float)tmp_w;
-    h = (float)tmp_h;
+  public Component(float tmp_x, float tmp_y, float tmp_w, float tmp_h){
+    x = tmp_x;
+    y = tmp_y;
+    w = tmp_w;
+    h = tmp_h;
     min_w = 0.0f;
     min_h = 0.0f;
     name = "Empty";
@@ -43,18 +43,18 @@ class Component{
     child.setup();
     return child;
   }
-  public void setMinSize(int tmp_min_w, int tmp_min_h){
+  public void setMinSize(float tmp_min_w, float tmp_min_h){
     min_w = tmp_min_w;
     min_h = tmp_min_h;
   }
-  public void mouseEvent(String type, int tmp_x, int tmp_y, int start_x, int start_y){
+  public void mouseEvent(String type, float tmp_x, float tmp_y, float start_x, float start_y){
     if (mouseEventToChild(type, tmp_x, tmp_y, start_x, start_y)) return;
     switch(type){
       case "HIT":
         break;
       case "DOWN":
-        dragStartCompX = (int)x;
-        dragStartCompY = (int)y;
+        dragStartCompX = x;
+        dragStartCompY = y;
         break;
       case "UP":
         break;
@@ -68,14 +68,14 @@ class Component{
         break;
     }
   }
-  public boolean mouseEventToChild(String type, int tmp_x, int tmp_y, int start_x, int start_y){
+  public boolean mouseEventToChild(String type, float tmp_x, float tmp_y, float start_x, float start_y){
     if (type == "UP" && (dragFlag || clickFlag)){
-      childs.get(0).mouseEvent(type, tmp_x - (int)childs.get(0).x, tmp_y - (int)childs.get(0).y, start_x - (int)childs.get(0).x, start_y - (int)childs.get(0).y);
+      childs.get(0).mouseEvent(type, tmp_x - childs.get(0).x, tmp_y - childs.get(0).y, start_x - childs.get(0).x, start_y - childs.get(0).y);
       dragFlag = false;
       clickFlag = false;
     }
     if(dragFlag) {
-      childs.get(0).mouseEvent(type, tmp_x - (int)childs.get(0).x, tmp_y - (int)childs.get(0).y, start_x - (int)childs.get(0).x, start_y - (int)childs.get(0).y);
+      childs.get(0).mouseEvent(type, tmp_x - childs.get(0).x, tmp_y - childs.get(0).y, start_x - childs.get(0).x, start_y - childs.get(0).y);
       return true;
     }
     else{
@@ -84,7 +84,7 @@ class Component{
           switch(type){
             case "DOWN":
               activeChilds(c);
-              c.mouseEvent(type, tmp_x - (int)c.x, tmp_y - (int)c.y, start_x - (int)c.x, start_y - (int)c.y);
+              c.mouseEvent(type, tmp_x - c.x, tmp_y - c.y, start_x - c.x, start_y - c.y);
               dragFlag = true;
               clickFlag = true;
               break;
@@ -92,7 +92,7 @@ class Component{
             case "DRAG":
               break;
             default:
-              c.mouseEvent(type, tmp_x - (int)c.x, tmp_y - (int)c.y, start_x - (int)c.x, start_y - (int)c.y);
+              c.mouseEvent(type, tmp_x - c.x, tmp_y - c.y, start_x - c.x, start_y - c.y);
               break;
           }
           return true;
