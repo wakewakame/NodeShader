@@ -21,7 +21,7 @@ class DefaultComponent extends Component{
     strokeWeight(2.0f);
     stroke(30.0f, 30.0f, 30.0f, 255.0f);
     fill(220.0f, 220.0f, 220.0f, 178.0f);
-    rect(0, 0, w, h, 4.0f);
+    rect(0.0f, 0.0f, w, h, 4.0f);
     fill(30.0f, 30.0f, 30.0f, 255.0f);
     textAlign(LEFT, BOTTOM);
     textSize(24.0f);

@@ -2,7 +2,7 @@ class Component{
   public Component parent = null;
   public String name;
   public float x, y, w, h, min_w, min_h;
-  protected List<Component> childs;
+  public List<Component> childs;
   protected boolean dragFlag = false;
   protected boolean clickFlag = false;
   protected float dragStartCompX, dragStartCompY;
@@ -69,7 +69,7 @@ class Component{
     }
   }
   public boolean mouseEventToChild(String type, float tmp_x, float tmp_y, float start_x, float start_y){
-    if (type == "UP" && (dragFlag || clickFlag)){
+    if (type.equals("UP") && (dragFlag || clickFlag)){
       childs.get(0).mouseEvent(type, tmp_x - childs.get(0).x, tmp_y - childs.get(0).y, start_x - childs.get(0).x, start_y - childs.get(0).y);
       dragFlag = false;
       clickFlag = false;
