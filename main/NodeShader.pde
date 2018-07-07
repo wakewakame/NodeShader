@@ -18,6 +18,15 @@ class NodeShaderManagement{
     glslFilter = new GLSLFilter();
     List<File> glsl = Arrays.asList(dir.listFiles(glslFilter));
     node = new ArrayList<Component>();
+    node.add(
+      root.add(
+        new OutNode(
+          30 + node.size() * 80,
+          30 + node.size() * 60,
+          n
+        )
+      )
+    );
     for(File f : glsl){
       node.add(
         root.add(
@@ -30,15 +39,6 @@ class NodeShaderManagement{
         )
       );
     }
-    node.add(
-      root.add(
-        new PreviewNode(
-          30 + node.size() * 80,
-          30 + node.size() * 60,
-          n
-        )
-      )
-    );
   }
   class GLSLFilter implements FileFilter{
     boolean accept(File pathname){
@@ -56,6 +56,8 @@ class NodeShader extends Node{
   private String glsl;
   public NativeGL n;
   public NativeShader shader;
+  public PGraphics2D prev;
+  
   public NodeShader(File tmp_glsl, float tmp_x, float tmp_y, NativeGL tmp_n){
     super(tmp_glsl.getName(), tmp_x, tmp_y);
     glslPath = tmp_glsl;
@@ -74,8 +76,8 @@ class NodeShader extends Node{
       shader.s.uniformTexture(p.name, ((FrameBufferParam)p).frameBuffer.f);
     }
     shader.s.uniform1f("time", (float)millis() / 1000.0f);
-    shader.s.uniform2f("mouse", (float)mouseX / (float)n.canvas.width, (float)mouseY / n.canvas.height);
-    shader.s.uniform2f("resolution", n.canvas.width, n.canvas.height);
+    shader.s.uniform2f("mouse", (float)mouseX / n.w, (float)mouseY / n.h);
+    shader.s.uniform2f("resolution", n.w, n.h);
     shader.endDraw();
   }
   @Override
@@ -84,6 +86,7 @@ class NodeShader extends Node{
     shader = new NativeShader(n, glslPath.getPath());
     loadShader();
     createFrameBufferParam();
+    prev = (PGraphics2D)createGraphics((int)n.w, (int)n.h, P2D);
   }
   public void loadShader(){
     BufferedReader reader = createReader(glslPath.getPath());
@@ -115,44 +118,41 @@ class NodeShader extends Node{
     }
     outputs.add(new FrameBufferParam("output", n));
   }
-}
-
-class PreviewNode extends Node{
-  public NativeGL n;
-  Copy copy;
-  PGraphics2D img;
-  
-  public PreviewNode(float tmp_x, float tmp_y, NativeGL tmp_n){
-    super("output", tmp_x, tmp_y);
-    n = tmp_n;
-    copy = new Copy(n.context);
-  }
-  @Override
-  public void setup(){
-    super.setup();
-    inputs.add(new FrameBufferParam("output", n));
-    img = (PGraphics2D) createGraphics(n.canvas.width, n.canvas.height, P2D);
-  }
   @Override
   public void update(){
     super.update();
-    min_h += w * (float)n.canvas.height / (float)n.canvas.width;
-    reset();
-    job();
-    if(inputs == null) return;
-    if(inputs.childs.size() != 1) return;
-    Component p = inputs.childs.get(0);
-    if(!(p instanceof FrameBufferParam)) return;
-    if(((FrameBufferParam)p).frameBuffer == null) return;
-    copy.apply(((FrameBufferParam)p).frameBuffer.f, img);
+    min_h += w * n.h / n.w;
+    n.copy.apply(((FrameBufferParam)outputs.childs.get(0)).frameBuffer.f, prev);
   }
   @Override
   public void draw(){
     super.draw();
     pushMatrix();
     scale(1.0, -1.0);
-    image(img, 0, 0 - ((int)h - 20),(int)w, (int)(w*(float)n.canvas.height / (float)n.canvas.width));
+    noStroke();
+    fill(255.0f, 255.0f, 255.0f, 255.0f);
+    rect(0.0f, 0.0f - (h - 20.0f),w, w * n.h / n.w);
+    image(prev, 0, 0 - ((int)h - 20),(int)w, (int)(w * n.h / n.w));
     popMatrix();
+  }
+}
+
+class OutNode extends Node{
+  NativeGL n;
+  public OutNode(float tmp_x, float tmp_y, NativeGL tmp_n){
+    super("output", tmp_x, tmp_y);
+    n = tmp_n;
+  }
+  @Override
+  public void setup(){
+    super.setup();
+    inputs.add(new FrameBufferParam("output", n));
+  }
+  @Override
+  public void update(){
+    super.update();
+    reset();
+    job();
   }
 }
 

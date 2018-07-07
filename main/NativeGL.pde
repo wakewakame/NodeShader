@@ -7,26 +7,19 @@ import com.thomasdiewald.pixelflow.java.imageprocessing.filter.Copy;
 class NativeGL {
   private PApplet papplet;
   public DwPixelFlow context;
-  public PGraphics2D canvas;
+  public float w, h;
+  public Copy copy;
 
   public NativeGL(PApplet tmp_papplet, int resolution_width, int resolution_height) {
     papplet = tmp_papplet;
     context = new DwPixelFlow(papplet);
-    canvas = (PGraphics2D) createGraphics(resolution_width, resolution_height, P2D);
+    w = resolution_width; h = resolution_height;
+    copy = new Copy(context);
   }
   public NativeGL(PApplet tmp_papplet) {
     papplet = tmp_papplet;
     context = new DwPixelFlow(papplet);
-    canvas = (PGraphics2D) createGraphics(papplet.width, papplet.height, P2D);
-  }
-  public void draw(int a, int b, int c, int d) {
-    papplet.image(canvas, a, b, c, d);
-  }
-  public void draw(int a, int b) {
-    draw(a, b, canvas.width, canvas.height);
-  }
-  public void draw() {
-    draw(0, 0, canvas.width, canvas.height);
+    w = papplet.width; h = papplet.height;
   }
   public int getGLTextureHandle(PGraphics2D tex) {
     int[] tmp_framebuffer = new int[1];
@@ -67,9 +60,6 @@ public class NativeShader {
     n.context.beginDraw(graphics);
     s.begin();
   }
-  public void beginDraw(){
-    beginDraw(n.canvas);
-  }
   public void endDraw(){
     s.drawFullScreenQuad();
     s.end();
@@ -90,6 +80,6 @@ public class NativeFrameBuffer {
   public NativeFrameBuffer(NativeGL tmp_n) {
     n = tmp_n;
     f = new DwGLTexture();
-    f.resize(n.context, GL.GL_RGBA32F, n.canvas.width, n.canvas.height, GL.GL_RGBA, GL.GL_FLOAT, GL.GL_NEAREST, GL.GL_REPEAT, 4, 1);
+    f.resize(n.context, GL.GL_RGBA32F, (int)n.w, (int)n.h, GL.GL_RGBA, GL.GL_FLOAT, GL.GL_NEAREST, GL.GL_REPEAT, 4, 1);
   }
 };
