@@ -8,7 +8,6 @@ import java.util.regex.Matcher;
 class NodeShaderManagement{
   public Component root;
   public NativeGL n;
-  public List<Component> node;
   public GLSLFilter glslFilter;
   
   public NodeShaderManagement(Component tmp_root, PApplet applet, int canvas_width, int canvas_height){
@@ -17,25 +16,20 @@ class NodeShaderManagement{
     File dir = new File(sketchPath(), "data");
     glslFilter = new GLSLFilter();
     List<File> glsl = Arrays.asList(dir.listFiles(glslFilter));
-    node = new ArrayList<Component>();
-    node.add(
-      root.add(
-        new OutNode(
-          30 + node.size() * 80,
-          30 + node.size() * 60,
-          n
-        )
+    root.add(
+      new OutNode(
+        30 + root.childs.size() * 80,
+        30 + root.childs.size() * 60,
+        n
       )
     );
     for(File f : glsl){
-      node.add(
-        root.add(
-          new NodeShader(
-            f,
-            30 + node.size() * 80,
-            30 + node.size() * 60,
-            n
-          )
+      root.add(
+        new ShaderNode(
+          f,
+          30 + root.childs.size() * 80,
+          30 + root.childs.size() * 60,
+          n
         )
       );
     }
@@ -51,14 +45,14 @@ class NodeShaderManagement{
   }
 }
 
-class NodeShader extends Node{
+class ShaderNode extends Node{
   private File glslPath;
   private String glsl;
   public NativeGL n;
   public NativeShader shader;
   public PGraphics2D prev;
   
-  public NodeShader(File tmp_glsl, float tmp_x, float tmp_y, NativeGL tmp_n){
+  public ShaderNode(File tmp_glsl, float tmp_x, float tmp_y, NativeGL tmp_n){
     super(tmp_glsl.getName(), tmp_x, tmp_y);
     glslPath = tmp_glsl;
     n = tmp_n;
@@ -133,6 +127,46 @@ class NodeShader extends Node{
     fill(255.0f, 255.0f, 255.0f, 255.0f);
     rect(0.0f, 0.0f - (h - 20.0f),w, w * n.h / n.w);
     image(prev, 0, 0 - ((int)h - 20),(int)w, (int)(w * n.h / n.w));
+    popMatrix();
+  }
+}
+
+class ImageNode extends Node{
+  public NativeGL n;
+  PGraphicsOpenGL img;
+  
+  public ImageNode(String tmp_name, float tmp_x, float tmp_y, NativeGL tmp_n, PGraphicsOpenGL tmp_img){
+    super(tmp_name, tmp_x, tmp_y);
+    n = tmp_n;
+    img = tmp_img;
+  }
+  @Override
+  public void job(){
+    super.job();
+    if(outputs == null) return;
+    if(outputs.childs.size() != 1) return;
+    NativeFrameBuffer fb = ((FrameBufferParam)outputs.childs.get(0)).frameBuffer;
+    n.copy.apply(img, fb.f);
+  }
+  @Override
+  public void setup(){
+    super.setup();
+    outputs.add(new FrameBufferParam("output", n));
+  }
+  @Override
+  public void update(){
+    super.update();
+    min_h += w * (float)img.height / (float)img.width;
+  }
+  @Override
+  public void draw(){
+    super.draw();
+    pushMatrix();
+    scale(1.0, -1.0);
+    noStroke();
+    fill(255.0f, 255.0f, 255.0f, 255.0f);
+    rect(0.0f, 0.0f - (h - 20.0f),w, w * n.h / n.w);
+    image(img, 0, 0 - ((int)h - 20),(int)w, (int)(w * (float)img.height / img.width));
     popMatrix();
   }
 }

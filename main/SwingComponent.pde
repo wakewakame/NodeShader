@@ -19,8 +19,8 @@ class SwingComponent extends DefaultComponent {
     accelerator.sub(new PVector(x, y));
     accelerator.mult(0.1f);
     velocity.add(accelerator);
-    x += velocity.x;
-    y += velocity.y;
+    x += velocity.x * 60.0f / (float)frameRate;
+    y += velocity.y * 60.0f / (float)frameRate;
   }
   @Override
   public void mouseEvent(String type, float tmp_x, float tmp_y, float start_x, float start_y) {
@@ -68,8 +68,8 @@ class SwingResizeBox extends ResizeBox {
     accelerator.sub(new PVector(x, y));
     accelerator.mult(0.1f);
     velocity.add(accelerator);
-    x += velocity.x;
-    y += velocity.y;
+    x += velocity.x * 60.0f / (float)frameRate;
+    y += velocity.y * 60.0f / (float)frameRate;
     target.x = max(0.0f, target.x);
     target.y = max(0.0f, target.y);
     target.x = max(parent.min_w - w, target.x);
