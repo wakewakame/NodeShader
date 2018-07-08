@@ -9,23 +9,29 @@ class NodeShaderManagement{
   public Component root;
   public NativeGL n;
   public GLSLFilter glslFilter;
+  public ImageFilter imgFilter;
   
   public NodeShaderManagement(Component tmp_root, PApplet applet, int canvas_width, int canvas_height){
     root = tmp_root;
     n = new NativeGL(applet, canvas_width, canvas_height);
     File dir = new File(sketchPath(), "data");
     glslFilter = new GLSLFilter();
+    imgFilter = new ImageFilter();
     List<File> glsl = Arrays.asList(dir.listFiles(glslFilter));
-    root.add(
-      new OutNode(
-        30 + root.childs.size() * 80,
-        30 + root.childs.size() * 60,
-        n
-      )
-    );
+    List<File> img = Arrays.asList(dir.listFiles(imgFilter));
     for(File f : glsl){
       root.add(
         new ShaderNode(
+          f,
+          30 + root.childs.size() * 80,
+          30 + root.childs.size() * 60,
+          n
+        )
+      );
+    }
+    for(File f : img){
+      root.add(
+        new ImageNode(
           f,
           30 + root.childs.size() * 80,
           30 + root.childs.size() * 60,
@@ -40,6 +46,19 @@ class NodeShaderManagement{
         pathname.isFile() &&
         pathname.canRead() &&
         pathname.getPath().endsWith(".glsl")
+      );
+    }
+  }
+  class ImageFilter implements FileFilter{
+    boolean accept(File pathname){
+      return (
+        pathname.isFile() &&
+        pathname.canRead() &&
+        (
+          pathname.getPath().endsWith(".jpg") ||
+          pathname.getPath().endsWith(".jpeg") ||
+          pathname.getPath().endsWith(".png")
+        )
       );
     }
   }
@@ -117,6 +136,8 @@ class ShaderNode extends Node{
     super.update();
     min_h += w * n.h / n.w;
     n.copy.apply(((FrameBufferParam)outputs.childs.get(0)).frameBuffer.f, prev);
+    reset();
+    job();
   }
   @Override
   public void draw(){
@@ -129,16 +150,46 @@ class ShaderNode extends Node{
     image(prev, 0, 0 - ((int)h - 20),(int)w, (int)(w * n.h / n.w));
     popMatrix();
   }
+  @Override
+  public void mouseEvent(String type, float tmp_x, float tmp_y, float start_x, float start_y){
+    super.mouseEvent(type, tmp_x, tmp_y, start_x, start_y);
+    if(type.equals("CLICK") && mouseButton == RIGHT){
+      parent.add(
+        new ShaderNode(
+          glslPath,
+          30 + parent.childs.size() * 80,
+          30 + parent.childs.size() * 60,
+          n
+        )
+      );
+    }
+  }
 }
 
 class ImageNode extends Node{
   public NativeGL n;
-  PGraphicsOpenGL img;
+  PImage pimg = null;
+  PGraphicsOpenGL img = null;
+  boolean doInvert = false;
   
   public ImageNode(String tmp_name, float tmp_x, float tmp_y, NativeGL tmp_n, PGraphicsOpenGL tmp_img){
     super(tmp_name, tmp_x, tmp_y);
     n = tmp_n;
     img = tmp_img;
+  }
+  public ImageNode(String tmp_name, float tmp_x, float tmp_y, NativeGL tmp_n, PImage tmp_img, boolean invert){
+    super(tmp_name, tmp_x, tmp_y);
+    n = tmp_n;
+    pimg = tmp_img;
+    img = (PGraphics2D)createGraphics(pimg.width, pimg.height, P2D);
+    doInvert = invert;
+  }
+  public ImageNode(File tmp_name, float tmp_x, float tmp_y, NativeGL tmp_n){
+    super(tmp_name.getName(), tmp_x, tmp_y);
+    n = tmp_n;
+    pimg = loadImage(tmp_name.getPath());
+    img = (PGraphics2D)createGraphics(pimg.width, pimg.height, P2D);
+    doInvert = true;
   }
   @Override
   public void job(){
@@ -146,6 +197,17 @@ class ImageNode extends Node{
     if(outputs == null) return;
     if(outputs.childs.size() != 1) return;
     NativeFrameBuffer fb = ((FrameBufferParam)outputs.childs.get(0)).frameBuffer;
+    if(pimg != null){
+      img.beginDraw();
+      img.pushMatrix();
+      if(doInvert){
+        img.scale(1.0f, -1.0f);
+        img.translate(0.0f, 0.0f - img.height);
+      }
+      img.image(pimg, 0, 0, img.width, img.height);
+      img.popMatrix();
+      img.endDraw();
+    }
     n.copy.apply(img, fb.f);
   }
   @Override
@@ -157,6 +219,8 @@ class ImageNode extends Node{
   public void update(){
     super.update();
     min_h += w * (float)img.height / (float)img.width;
+    reset();
+    job();
   }
   @Override
   public void draw(){
@@ -168,25 +232,6 @@ class ImageNode extends Node{
     rect(0.0f, 0.0f - (h - 20.0f),w, w * n.h / n.w);
     image(img, 0, 0 - ((int)h - 20),(int)w, (int)(w * (float)img.height / img.width));
     popMatrix();
-  }
-}
-
-class OutNode extends Node{
-  NativeGL n;
-  public OutNode(float tmp_x, float tmp_y, NativeGL tmp_n){
-    super("output", tmp_x, tmp_y);
-    n = tmp_n;
-  }
-  @Override
-  public void setup(){
-    super.setup();
-    inputs.add(new FrameBufferParam("output", n));
-  }
-  @Override
-  public void update(){
-    super.update();
-    reset();
-    job();
   }
 }
 

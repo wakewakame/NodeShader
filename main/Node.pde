@@ -4,7 +4,7 @@ class Node extends SwingComponent {
   public boolean finishJob = false;
 
   public Node(String tmp_name, float tmp_x, float tmp_y) {
-    super(tmp_x, tmp_y, 0.0f, 0.0f);
+    super(tmp_x, tmp_y, 300.0f, 0.0f);
     name = tmp_name;
     inputs = new NodeParams((int)(0.0f - paramSize / 2.0f), 0, paramSize, paramGap, true, this);
     outputs = new NodeParams((int)(w - paramSize / 2.0f), 0, paramSize, paramGap, false, this);

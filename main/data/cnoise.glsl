@@ -100,7 +100,7 @@ float snoise(vec3 v)
   }
 
 void main( void ) {
-	vec2 uv = gl_FragCoord.xy / vec2(resolution.x, resolution.y) *  mouse.x * 10.0;
+	vec2 uv = gl_FragCoord.xy / vec2(resolution.x, resolution.y);
 	vec3 p = vec3(snoise(vec3(uv, time)));
 	gl_FragColor = vec4(p, 1.0);
 }

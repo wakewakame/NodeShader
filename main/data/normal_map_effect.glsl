@@ -26,11 +26,8 @@ vec3 normal(vec2 v, float delta) {
 }
 
 void main( void ) {
-  vec2 uv = gl_FragCoord.xy / vec2(resolution.x, resolution.y);
-  
+  vec2 uv = gl_FragCoord.xy / resolution;
   vec3 p = normal(uv, 0.01);
   p = (p + vec3(1.0)) * 0.5;
-
   gl_FragColor = vec4(p, 1.0);
-
 }
